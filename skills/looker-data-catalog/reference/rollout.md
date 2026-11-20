@@ -33,6 +33,16 @@ In the repo copy of `catalog.yml`, `lookml.root` is the repo itself and the dbt 
 3. Deploy to production. Merging does not deploy unless the client has a deploy webhook or advanced deploy mode. Deploy from a clean development branch that matches the production branch. Never deploy someone's personal development branch with unsaved work in it.
 4. Run the job once (`workflow_dispatch`) and check that the `catalog_snapshot` explore returns the new build.
 
+## When the job runs
+
+| Trigger | Picks up |
+|---|---|
+| Daily at 05:30 UTC (`schedule` in the workflow) | Everything, including dbt changes and warehouse metadata |
+| A push to the production branch touching `views/`, `models/`, `dashboards/`, `explores/` or `data_apps/` | LookML changes and glossary or knowledge edits |
+| `workflow_dispatch` (run by hand) | Anything, on demand |
+
+The explores use a datagroup on `MAX(built_at)`, so Looker's cache clears when a new build lands. Usage figures are read live from System Activity and need no job. App code changes still need a rebuild and a republish.
+
 ## 5. Model name
 
 The app queries `catalog_snapshot` in the model named in `lookml.model`. Include the explore file in that model.

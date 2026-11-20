@@ -50,6 +50,32 @@ flowchart LR
 
 The app runs as the person viewing it, so Looker's own permissions apply.
 
+## Keeping it up to date
+
+Once the live refresh is set up, the catalog updates itself. A GitHub Actions job in the LookML repo rebuilds the catalog and loads it into BigQuery. Looker clears its cache when a new build lands, and the app loads the newest build when someone opens it. The app shows "Catalog updated <time>". If it cannot reach BigQuery, it falls back to the copy built into it and shows "Built-in copy from <date>".
+
+**When the job runs**
+
+| Trigger | Picks up |
+|---|---|
+| Every day at 05:30 UTC | Everything, including dbt changes and warehouse column, size and freshness changes |
+| A merge to the production branch that touches `views/`, `models/`, `dashboards/`, `explores/` or `data_apps/` | LookML changes, and glossary or knowledge edits, within minutes |
+| Run by hand from the Actions tab | Anything, on demand |
+
+Usage figures do not need the job: the app reads them live from Looker System Activity. Changes to the app's own code or design still need a republish.
+
+**How to turn it on**
+
+`new_client.py` creates every file these steps need. Full detail is in [rollout.md](skills/looker-data-catalog/reference/rollout.md).
+
+1. **BigQuery:** run `bigquery_tables.sh` once to create the catalog dataset and 6 empty tables.
+2. **Access:** create a service account with read-only metadata access on the warehouse project and write access to the catalog dataset only.
+3. **GitHub:** set up workload identity federation for the LookML repo, so the job signs in without a key file. Add a read-only deploy key for the dbt repo as the secret `DBT_REPO_DEPLOY_KEY`.
+4. **LookML:** add the catalog views, the explore file, the builder and the workflow file to the LookML repo, and one line to the model: `include: "/data_apps/*.explore.lkml"`.
+5. **Deploy:** validate in Looker, merge, deploy to production, then run the job once by hand and check that the app shows "Catalog updated".
+
+Without these steps the catalog still works, from the copy built into the app. Each update then needs a rebuild and a republish.
+
 ## What you need
 
 - A Looker-hosted instance, version 26.18 or later, with Data Apps switched on under Admin, General, Previews.
