@@ -26,6 +26,7 @@ In this guide, `<skill>` means the folder this file is in.
 
 - A Looker-hosted instance on 26.18 or later, with Data Apps switched on (Admin, General, Previews). See https://docs.cloud.google.com/looker/docs/data-apps.
 - Google's Looker Data Apps toolkit, installed and configured for that instance: `bash <(curl -fsSL https://dl.google.com/looker-data-apps/install.sh)`. It installs to `~/looker-data-apps` by default. This guide calls that folder `<toolkit>`.
+- The Wire plugin for Claude Code (https://github.com/rittmananalytics/wire-plugin), which this catalog was built with. When Wire is installed, use its `data-apps` skill for checks and `/wire:data_app-publish` for Step 8: it shows a dry run and asks before it publishes. The toolkit commands in Steps 6 and 8 do the same work without Wire.
 - The LookML repo and the dbt project, cloned locally.
 - BigQuery for warehouse metadata and the live refresh (optional; see Step 5).
 - Python 3.10 or later, and `uv` (or `pip`) for the builder's environment.

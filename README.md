@@ -4,7 +4,7 @@ A data catalog and knowledge catalog that runs inside Looker, as a [Looker Data 
 
 This repo is a [Claude](https://claude.com) skill: Claude follows it to set up, brand, build, check and publish the catalog for you. You can also follow the same steps by hand.
 
-Made by [Rittman Analytics](https://rittmananalytics.com). MIT licence.
+Made by [Rittman Analytics](https://rittmananalytics.com) with [Wire](https://github.com/rittmananalytics/wire-plugin), our framework for building data platforms with Claude. MIT licence.
 
 ![Home page of the catalog](docs/images/home.png)
 
@@ -54,6 +54,13 @@ The app runs as the person viewing it, so Looker's own permissions apply.
 
 - A Looker-hosted instance, version 26.18 or later, with Data Apps switched on under Admin, General, Previews.
 - Google's Looker Data Apps toolkit, for previewing and publishing: `bash <(curl -fsSL https://dl.google.com/looker-data-apps/install.sh)`.
+- The [Wire](https://github.com/rittmananalytics/wire-plugin) plugin for Claude Code. It adds the Data Apps rules and checks, and a publish command that shows a dry run and asks before it publishes. Install it with:
+
+  ```
+  /plugin marketplace add rittmananalytics/wire-plugin
+  /plugin install wire@rittman-analytics
+  /reload-plugins
+  ```
 - Your LookML repo and dbt project, cloned on your machine.
 - Python 3.10 or later, and [uv](https://docs.astral.sh/uv/) or pip.
 - BigQuery, for warehouse columns, sizes and freshness and for the daily refresh. Without BigQuery the catalog still works from dbt and LookML alone.
@@ -123,6 +130,10 @@ docs/images/                    screenshots
 - No PDF export or scheduled delivery of the app.
 - Copies of the published dashboard share one app, so a republish changes every copy.
 - Very large projects need the size settings described in Step 5 to stay under 900 KB.
+
+## Built with Wire
+
+The catalog was built with [Wire](https://github.com/rittmananalytics/wire-plugin), Rittman Analytics' framework for building data platforms with Claude Code. Wire's Data Apps skill and commands wrote and checked the app against the tile sandbox rules, ran Google's verify stages against Looker, and published it to Looker after a dry run and a confirmation.
 
 ## Contributing
 
