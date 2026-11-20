@@ -1,0 +1,75 @@
+# Builds the Data Catalog snapshot and loads it into BigQuery ({{BQ_PROJECT}}.{{BQ_DATASET}}).
+# The Data Catalog Looker Data App reads the latest build through the catalog_snapshot explore.
+#
+# Access it needs (service account {{SERVICE_ACCOUNT}}):
+#   - dbt deps and dbt parse with a throwaway profile: no warehouse connection
+#   - BigQuery metadata only (INFORMATION_SCHEMA, __TABLES__), queries capped at 1 GB billed:
+#     roles/bigquery.jobUser and roles/bigquery.metadataViewer on the warehouse project
+#   - bq load into {{BQ_DATASET}} (free) and one DELETE of old builds: WRITER on that dataset only
+# No table data outside {{BQ_DATASET}} is read. No app is built or published here.
+name: Data apps catalog
+
+on:
+  schedule:
+    - cron: "30 5 * * *"
+  push:
+    branches: [{{PROD_BRANCH}}]
+    paths:
+      - "views/**"
+      - "models/**"
+      - "dashboards/**"
+      - "data_apps/**"
+      - "explores/**"
+  workflow_dispatch:
+
+concurrency:
+  group: data-apps-catalog
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  build-catalog:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      DBT_PROJECT_DIR: ${{ github.workspace }}/dbt
+    steps:
+      - name: Check out the LookML repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # full history for the "Recently changed" list
+
+      - name: Check out the dbt repo
+        uses: actions/checkout@v4
+        with:
+          repository: {{DBT_REPO}}
+          ssh-key: ${{ secrets.DBT_REPO_DEPLOY_KEY }}
+          path: dbt
+          fetch-depth: 1
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: {{WIF_PROVIDER}}
+          service_account: {{SERVICE_ACCOUNT}}
+
+      - name: Set up gcloud and bq
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Install the builder
+        working-directory: data_apps/catalog_builder
+        run: |
+          uv venv --python 3.12 .venv
+          uv pip install --python .venv/bin/python -r requirements.txt
+
+      - name: Build the catalog and load BigQuery
+        run: |
+          data_apps/catalog_builder/.venv/bin/python -I data_apps/catalog_builder/build_metadata.py \
+            --config data_apps/catalog_builder/catalog.yml \
+            --parse --refresh-warehouse --load-bigquery

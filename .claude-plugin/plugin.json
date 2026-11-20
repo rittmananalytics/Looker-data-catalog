@@ -1,0 +1,10 @@
+{
+  "name": "looker-data-catalog",
+  "version": "1.0.0",
+  "description": "Build a branded data catalog and knowledge catalog as a Looker Data App, from your LookML, dbt project and BigQuery metadata.",
+  "author": { "name": "Rittman Analytics", "url": "https://rittmananalytics.com" },
+  "homepage": "https://github.com/rittmananalytics/Looker-data-catalog",
+  "repository": "https://github.com/rittmananalytics/Looker-data-catalog",
+  "license": "MIT",
+  "keywords": ["looker", "data-catalog", "dbt", "bigquery", "lookml", "data-apps", "metadata", "lineage", "glossary"]
+}

@@ -1,0 +1,66 @@
+# Knowledge content for the Data Catalog: data products, business rules, verified questions,
+# search synonyms and context graph presets.
+#
+# Everything starts as draft and shows "Draft, needs an owner" in the app. Set status: confirmed
+# only after the item has been checked against the code and a named person at the client agrees.
+#
+# Asset references:
+#   tables:            dbt model names, or source names (source_name.table)
+#   explores:          Looker explore names
+#   metrics:           Looker fields as view.field (the view, not the join alias)
+#   dashboards:        LookML dashboard names the model includes
+#   looker_dashboards: dashboard ids on the client's Looker instance
+
+data_products: []
+#  - id: sales-performance
+#    name: Sales performance
+#    status: draft
+#    owner: ""
+#    suggested_owner: Head of Sales
+#    purpose: >
+#      Orders, revenue and margin by channel, region and product.
+#    used_for: [Weekly trading review]
+#    refresh: Daily
+#    tables: [fct_orders]
+#    explores: [orders]
+#    metrics: [orders.total_net_revenue]
+#    looker_dashboards: [12]
+
+business_rules: []
+#  - id: net-revenue-excludes-tax
+#    title: Net revenue excludes tax and returns
+#    status: draft
+#    owner: ""
+#    rule: >
+#      Net revenue is order value less discounts, returns and sales tax.
+#    terms: [Net revenue]
+#    metrics: [orders.total_net_revenue]
+#    source: fct_orders model
+#    category: calculation        # calculation, inclusion, threshold, data_entry, ownership
+#    domain: finance
+#    why: >
+#      Two revenue figures on two dashboards undermine trust in both.
+#    tables: [fct_orders]
+#    implemented_in:
+#      - { dbt_model: fct_orders }
+#      - { lookml: orders.total_net_revenue, note: "sum of net_amount" }
+#    tested_by: []               # dbt test names that check the rule
+
+verified_questions: []
+#  - q: What was net revenue last week?
+#    status: draft
+#    answer: Net revenue by order date. Filter on last week.
+#    metric: orders.total_net_revenue
+#    explore: orders
+#    looker_dashboard: 12
+#    also: [sales last week, weekly revenue]
+
+# Words people use that the model names differently. Each list is one group.
+synonyms:
+  - [revenue, sales, turnover]
+  - [customer, client, account]
+  - [order, purchase, transaction]
+
+# Preset views for the context graph: focus is "term:<term>" or "product:<id>".
+graph_presets: []
+#  - { id: revenue, label: Revenue, focus: "term:Net revenue", hops: 2, kinds: [term, product, rule, metric, dashboard] }

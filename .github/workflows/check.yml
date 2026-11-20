@@ -1,0 +1,46 @@
+name: Check
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Python compiles
+        run: python -m py_compile skills/looker-data-catalog/scripts/*.py skills/looker-data-catalog/template/catalog_builder/build_metadata.py
+
+      - name: App source parses
+        run: cp skills/looker-data-catalog/template/app/src/app.src.js "$RUNNER_TEMP/app.mjs" && node --check "$RUNNER_TEMP/app.mjs"
+
+      - name: Set up a sample project and check its brand
+        run: |
+          pip install --quiet PyYAML==6.0.3
+          OUT="$RUNNER_TEMP/acme"
+          python -I skills/looker-data-catalog/scripts/new_client.py \
+            --client "Acme Retail" --out "$OUT" \
+            --looker-instance https://acme.cloud.looker.com \
+            --lookml ../sources/lookml --dbt ../sources/dbt \
+            --dbt-package acme --dbt-profile acme \
+            --model analytics --model-file models/analytics.model.lkml \
+            --default-schema analytics --warehouse-project acme-prod \
+            --bq-project acme-prod --bq-location EU
+          printf '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 32"><rect width="32" height="32" fill="#3B5BDB"/></svg>' > "$OUT/brand/logo.svg"
+          cp "$OUT/brand/logo.svg" "$OUT/brand/mark.svg"
+          python -I skills/looker-data-catalog/scripts/check_brand.py "$OUT/catalog_builder/catalog.yml"

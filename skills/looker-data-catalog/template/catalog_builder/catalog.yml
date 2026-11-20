@@ -1,0 +1,151 @@
+# Data Catalog build configuration for {{CLIENT_NAME}}.
+#
+# One file per client. Paths are relative to this file. Build with:
+#
+#   catalog_builder/.venv/bin/python -I catalog_builder/build_metadata.py \
+#       --config catalog_builder/catalog.yml --parse --refresh-warehouse \
+#       --source apps/data-catalog/src/app.src.js --inject apps/data-catalog/app.js
+#
+# Check the brand before building:
+#   catalog_builder/.venv/bin/python -I <skill>/scripts/check_brand.py catalog_builder/catalog.yml
+
+client:
+  name: {{CLIENT_NAME}}
+  product: Data Catalog
+  tagline: Every table, metric and dashboard in the {{CLIENT_NAME}} analytics platform, and how they connect.
+  logo_svg: ../brand/logo.svg            # full logo, dark on light, SVG
+  mark_svg: ../brand/mark.svg            # square mark for the narrow header, SVG; can be the same file
+  looker_instance: {{LOOKER_INSTANCE}}
+
+brand:
+  # Colour tokens the app reads. Only these keys are used. Run check_brand.py after changing them.
+  primary: "#3B5BDB"        # the one accent: links, active tabs, buttons (white text sits on it)
+  primary_soft: "#E5EBFF"   # tinted background behind primary_ink text: chips, selected rows
+  primary_ink: "#24389C"    # text on primary_soft
+  ink: "#16181D"            # main text
+  muted: "#5B606B"          # secondary text
+  subtle: "#878C97"         # hints and axis labels (large or decorative text only)
+  border: "#E3E5EA"
+  canvas: "#F7F8FA"         # page background
+  card: "#FFFFFF"           # card background
+  tints: ["#E5EBFF", "#EEE5FF", "#E6F7EC", "#E5F4FB", "#FFE9DD", "#FFF5D6"]   # domain and chart tints, light
+  fonts:
+    # Leave files empty to use the system font stack. Only embed fonts the client licenses for web use.
+    display: ""              # body text and descriptions, for example Inter
+    heading: ""              # headings, labels, numbers and navigation
+    files: []
+    #  - { family: Inter, weight: 400, file: ../brand/fonts/Inter-Regular.woff2, subset: latin }
+    #  - { family: Inter, weight: 600, file: ../brand/fonts/Inter-SemiBold.woff2, subset: latin }
+
+lookml:
+  root: {{LOOKML_ROOT}}
+  model: {{LOOKER_MODEL}}                 # Looker model name the usage queries filter on
+  model_file: {{MODEL_FILE}}
+  views: ["views/**/*.view.lkml"]
+  dashboards: ["dashboards/*.dashboard.lookml", "*.dashboard.lookml"]
+  # Dashboards the model file includes; others are listed but flagged.
+  dashboards_in_model: ["dashboards/*.dashboard.lookml"]
+  # Schema to assume when sql_table_name uses a user attribute or Liquid for the dataset.
+  default_schema: {{DEFAULT_SCHEMA}}
+
+dbt:
+  project: {{DBT_ROOT}}
+  package: {{DBT_PACKAGE}}
+  adapter: bigquery                      # used only for the throwaway parse profile
+  database: {{BQ_WAREHOUSE_PROJECT}}     # target project, so relation names match production
+  schema: {{DEFAULT_SCHEMA}}             # target dataset
+  profile_name: {{DBT_PROFILE}}
+  manifest: null                         # or a path to an existing target/manifest.json
+  # dbt folder (fqn[1]) to layer. Match the client's folder names.
+  layers:
+    sources: staging
+    staging: staging
+    integration: integration
+    intermediate: integration
+    warehouse: warehouse
+    marts: warehouse
+  # Warehouse sub-folder (fqn[2]) to domain id. Fill in from the client's dbt folders.
+  domain_folders: {}
+  #  finance: finance
+  #  sales: sales
+
+# Business domains shown on the home page and the Domains page.
+# icon: one of book box briefcase building calculator code dashboard graph health key link lock
+#       megaphone metric pound product question rule shield source table target trending-up usage user users
+domains:
+  - { id: customers, icon: building, label: Customers, text: "Customers, accounts and contacts." }
+  - { id: sales, icon: trending-up, label: Sales, text: "Orders, pipeline and revenue." }
+  - { id: finance, icon: calculator, label: Finance, text: "Invoices, ledger, budgets and costs." }
+  - { id: marketing, icon: megaphone, label: Marketing, text: "Website, campaigns and email." }
+  - { id: product, icon: box, label: Product, text: "Products, catalogue and product usage." }
+  - { id: operations, icon: briefcase, label: Operations, text: "Fulfilment, stock and service." }
+  - { id: people, icon: user, label: People, text: "Staff and teams." }
+  - { id: other, icon: dots, label: Other, text: "Assets not yet assigned to a domain." }
+
+# Readable names for source systems, by dbt source_name prefix match.
+source_systems:
+  shopify: Shopify
+  salesforce: Salesforce
+  hubspot: HubSpot
+  netsuite: NetSuite
+  xero: Xero
+  stripe: Stripe
+  ga4: Google Analytics 4
+  google_ads: Google Ads
+  facebook: Meta Ads
+  klaviyo: Klaviyo
+  zendesk: Zendesk
+  segment: Segment
+
+# Search prompts on the home page and in the search tips. Write them in the client's own words,
+# using real metric, table and column names from their model.
+search:
+  examples: ["revenue", "customer", "orders"]
+  column_example: id
+  sql_example: "sum("
+  filter_examples: []      # for example "undocumented tables in finance", "metrics used in <dashboard>"
+
+usage:
+  show_people: false     # true shows Looker user names on the Usage page; only with the client's written agreement
+  days: 90
+
+glossary: glossary.yml
+knowledge: knowledge.yml
+
+limits:
+  model_sql_chars: 500
+  field_sql_chars: 500
+  description_chars: 600
+  column_description_chars: 220
+  # For large projects that go over 900 KB:
+  # hidden_fields: brief                        # hidden LookML fields keep name, type and references; no description or SQL
+  # column_descriptions_skip_layers: [staging]  # dbt column descriptions left out for these layers (names and types stay)
+
+# Fallback: assign a domain by name when lineage gives none. First match wins.
+domain_keywords:
+  customers: [customer, account, contact, compan]
+  sales: [order, sale, deal, pipeline, opportunit]
+  finance: [invoice, ledger, payment, budget, cost, revenue, gl_]
+  marketing: [web, session, campaign, ad_, ads_, email, attribution, seo]
+  product: [product, sku, catalog, item]
+  operations: [stock, inventory, fulfil, shipment, return, ticket]
+  people: [staff, employee, hr_]
+
+# Warehouse metadata (--refresh-warehouse). Read-only INFORMATION_SCHEMA queries, one batch
+# per dataset, cached in warehouse_snapshot.json so later builds need no login. BigQuery only.
+warehouse:
+  type: bigquery
+  project: {{BQ_WAREHOUSE_PROJECT}}
+  location: null                 # null: use each dataset's own region from `bq ls`
+  cache: warehouse_snapshot.json
+  parallel: 6
+  max_nested_fields: 30
+  # Layers whose columns are kept as names and types only, to keep the app under 900 KB
+  names_and_types_only: [source]
+
+# Where --load-bigquery writes. Loads are free; one DELETE keeps the newest builds.
+bigquery:
+  project: {{BQ_PROJECT}}
+  dataset: {{BQ_DATASET}}
+  location: {{BQ_LOCATION}}
+  keep_builds: 7

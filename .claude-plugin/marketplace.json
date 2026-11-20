@@ -1,0 +1,15 @@
+{
+  "name": "looker-data-catalog",
+  "owner": { "name": "Rittman Analytics", "url": "https://rittmananalytics.com" },
+  "metadata": { "description": "Looker Data Catalog skill by Rittman Analytics." },
+  "plugins": [
+    {
+      "name": "looker-data-catalog",
+      "source": "./",
+      "description": "Build a branded data catalog and knowledge catalog as a Looker Data App, from your LookML, dbt project and BigQuery metadata.",
+      "version": "1.0.0",
+      "category": "data",
+      "keywords": ["looker", "data-catalog", "dbt", "bigquery"]
+    }
+  ]
+}

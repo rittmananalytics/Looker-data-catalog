@@ -1,0 +1,17 @@
+# Business glossary for the Data Catalog.
+# Each term names the Looker measures (view.field, using the view name, not a join alias) that calculate it.
+# The builder warns about any field it cannot find.
+#
+# Every term starts as draft and shows "Draft, needs an owner" in the app. Set status: confirmed
+# only after the definition has been checked against the LookML and dbt code AND a named person
+# at the client has agreed it. owner is that person's role or name, as the client prefers.
+
+terms: []
+#  - status: draft
+#    term: Net revenue
+#    domain: finance
+#    owner: ""
+#    aliases: [net sales]
+#    definition: >
+#      Gross order value less discounts, returns and tax.
+#    metrics: [orders.total_net_revenue]
